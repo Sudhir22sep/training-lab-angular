@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NavController } from '@ionic/angular';
+import { AuthenticationService } from '../core/authentication.service';
 import { User } from '../models';
 
 @Component({
@@ -10,9 +11,17 @@ import { User } from '../models';
 export class Tab1Page {
   currentUser: User;
 
-  constructor(private navController: NavController) {}
+  constructor(
+    private auth: AuthenticationService,
+    private navController: NavController,
+  ) {}
 
-  logout() {
+  async ionViewWillEnter() {
+    this.currentUser = await this.auth.getUserInfo();
+  }
+
+  async logout() {
+    await this.auth.logout();
     this.navController.navigateRoot(['/', 'login']);
   }
 }

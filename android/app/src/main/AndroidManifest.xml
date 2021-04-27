@@ -30,7 +30,7 @@
             </intent-filter>
 
             <intent-filter>
-              <data android:scheme="myapp" />
+              <data android:scheme="msauth" />
               <action android:name="android.intent.action.VIEW" />
 
               <category android:name="android.intent.category.DEFAULT" />

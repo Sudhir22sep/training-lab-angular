@@ -7,10 +7,11 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { mergeMap, take, tap } from 'rxjs/operators';
+import { AuthenticationService } from './authentication.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor() {}
+  constructor(private auth: AuthenticationService) {}
 
   intercept(
     req: HttpRequest<any>,
@@ -33,7 +34,7 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private async getToken(): Promise<string | undefined> {
-    return undefined;
+    return this.auth.getAccessToken();
   }
 
   private requestRequiresToken(req: HttpRequest<any>): boolean {
