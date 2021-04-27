@@ -3,13 +3,15 @@ import { IonicAuth } from '@ionic-enterprise/auth';
 import { Platform } from '@ionic/angular';
 import { mobileAuthConfig, webAuthConfig } from 'src/environments/environment';
 import { User } from '../models';
+import { VaultService } from './vault.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthenticationService extends IonicAuth {
-  constructor(platform: Platform) {
+  constructor(platform: Platform, vault: VaultService) {
     const config = platform.is('hybrid') ? mobileAuthConfig : webAuthConfig;
+    config.tokenStorageProvider = vault;
     super(config);
   }
 
