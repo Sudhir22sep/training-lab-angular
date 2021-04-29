@@ -30,6 +30,20 @@
           required
         ></ion-input>
       </ion-item>
+      <ion-item *ngIf="displayLockingOptions">
+        <ion-label>Session Locking</ion-label>
+        <ion-select
+          id="auth-mode-select"
+          name="auth-mode"
+          [(ngModel)]="authMode"
+        >
+          <ion-select-option
+            *ngFor="let authMode of authModes"
+            [value]="authMode.mode"
+            >{{authMode.label}}</ion-select-option
+          >
+        </ion-select>
+      </ion-item>
     </ion-list>
   </form>
 
