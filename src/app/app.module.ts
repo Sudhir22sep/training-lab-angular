@@ -6,6 +6,7 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AuthInterceptor, UnauthInterceptor } from './core';
+import { PinDialogComponentModule } from './pin-dialog/pin-dialog.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -14,6 +15,7 @@ import { AuthInterceptor, UnauthInterceptor } from './core';
     BrowserModule,
     HttpClientModule,
     IonicModule.forRoot(),
+    PinDialogComponentModule,
     AppRoutingModule,
   ],
   providers: [
