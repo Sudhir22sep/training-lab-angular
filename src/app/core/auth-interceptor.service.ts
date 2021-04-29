@@ -7,10 +7,11 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { mergeMap, take, tap } from 'rxjs/operators';
+import { VaultService } from './vault.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  constructor() {}
+  constructor(private vault: VaultService) {}
 
   intercept(
     req: HttpRequest<any>,
@@ -33,7 +34,8 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private async getToken(): Promise<string | undefined> {
-    return undefined;
+    const session = await this.vault.restoreSession();
+    return session?.token;
   }
 
   private requestRequiresToken(req: HttpRequest<any>): boolean {
