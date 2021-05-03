@@ -18,7 +18,39 @@ export class LoginPage implements OnInit {
     private vault: VaultService,
   ) {}
 
+  authModes: Array<{
+    label: string;
+    type: 'SecureStorage' | 'DeviceSecurity' | 'CustomPasscode';
+    deviceSecurityType: 'SystemPasscode' | 'Biometrics' | 'Both';
+  }> = [
+    {
+      label: 'System PIN Unlock',
+      type: 'DeviceSecurity',
+      deviceSecurityType: 'SystemPasscode',
+    },
+    {
+      label: 'Biometric Unlock',
+      type: 'DeviceSecurity',
+      deviceSecurityType: 'Biometrics',
+    },
+    {
+      label: 'Biometric Unlock (System PIN Fallback)',
+      type: 'DeviceSecurity',
+      deviceSecurityType: 'Both',
+    },
+    {
+      label: 'Never Lock Session',
+      type: 'SecureStorage',
+      deviceSecurityType: 'Both',
+    },
+  ];
+
   ngOnInit() {}
+
+  lockChange(evt: { detail: { value: number } }) {
+    const mode = this.authModes[evt.detail.value];
+    this.vault.setVaultType(mode.type, mode.deviceSecurityType);
+  }
 
   signIn() {
     this.authentication.login(this.email, this.password).subscribe(session => {
