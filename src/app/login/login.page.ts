@@ -12,12 +12,6 @@ export class LoginPage implements OnInit {
   email: string;
   password: string;
 
-  constructor(
-    private authentication: AuthenticationService,
-    private navController: NavController,
-    private vault: VaultService,
-  ) {}
-
   authModes: Array<{
     label: string;
     type: 'SecureStorage' | 'DeviceSecurity' | 'CustomPasscode';
@@ -44,6 +38,12 @@ export class LoginPage implements OnInit {
       deviceSecurityType: 'Both',
     },
   ];
+
+  constructor(
+    private authentication: AuthenticationService,
+    private navController: NavController,
+    private vault: VaultService,
+  ) {}
 
   ngOnInit() {}
 
