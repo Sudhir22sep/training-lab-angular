@@ -4,6 +4,12 @@ import { Platform } from '@ionic/angular';
 import { Session } from '../models';
 import { BrowserVault } from './browser-vault';
 
+export interface VaultType {
+  label: string;
+  type: 'SecureStorage' | 'DeviceSecurity' | 'CustomPasscode';
+  deviceSecurityType: 'SystemPasscode' | 'Biometrics' | 'Both';
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -11,8 +17,8 @@ export class VaultService {
   private key = 'session';
   private vault: Vault | BrowserVault;
 
-  constructor(platform: Platform) {
-    this.vault = platform.is('hybrid')
+  constructor(private platform: Platform) {
+    this.vault = this.platform.is('hybrid')
       ? new Vault({
           key: 'io.ionic.traininglabng',
           type: 'SecureStorage',
@@ -37,14 +43,46 @@ export class VaultService {
     return this.vault.clear();
   }
 
-  setVaultType(
-    type: 'SecureStorage' | 'DeviceSecurity' | 'CustomPasscode',
-    deviceSecurityType?: 'SystemPasscode' | 'Biometrics' | 'Both' | undefined,
-  ): Promise<void> {
+  validVaultTypes(): Array<VaultType> {
+    return this.platform.is('hybrid')
+      ? this.validMobileVaultTypes()
+      : this.validWebVaultTypes();
+  }
+
+  setVaultType(type: VaultType): Promise<void> {
     return this.vault.updateConfig({
       ...this.vault.config,
-      type,
-      deviceSecurityType,
+      type: type.type,
+      deviceSecurityType: type.deviceSecurityType,
     });
+  }
+
+  private validMobileVaultTypes(): Array<VaultType> {
+    return [
+      {
+        label: 'System PIN Unlock',
+        type: 'DeviceSecurity',
+        deviceSecurityType: 'SystemPasscode',
+      },
+      {
+        label: 'Biometric Unlock',
+        type: 'DeviceSecurity',
+        deviceSecurityType: 'Biometrics',
+      },
+      {
+        label: 'Biometric Unlock (System PIN Fallback)',
+        type: 'DeviceSecurity',
+        deviceSecurityType: 'Both',
+      },
+      {
+        label: 'Never Lock Session',
+        type: 'SecureStorage',
+        deviceSecurityType: 'Both',
+      },
+    ];
+  }
+
+  private validWebVaultTypes(): Array<VaultType> {
+    return [];
   }
 }
