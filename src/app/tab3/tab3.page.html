@@ -11,5 +11,20 @@
     </ion-toolbar>
   </ion-header>
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <ion-radio-group
+    *ngIf="vaultTypes.length"
+    [value]="0"
+    (ionChange)="vaultTypeChanged($event)"
+  >
+    <ion-list-header>
+      <ion-label> Session Locking </ion-label>
+    </ion-list-header>
+
+    <ion-item *ngFor="let vaultType of vaultTypes; index as idx">
+      <ion-label>{{ vaultType.label }}</ion-label>
+      <ion-radio [value]="idx"></ion-radio>
+    </ion-item>
+  </ion-radio-group>
+
+  <ion-button expand="block" (click)="lock()">Lock</ion-button>
 </ion-content>

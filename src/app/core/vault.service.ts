@@ -43,6 +43,10 @@ export class VaultService {
     return this.vault.clear();
   }
 
+  async lockSession(): Promise<void> {
+    return this.vault.lock();
+  }
+
   validVaultTypes(): Array<VaultType> {
     return this.platform.is('hybrid')
       ? this.validMobileVaultTypes()
