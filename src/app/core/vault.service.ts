@@ -29,6 +29,8 @@ export class VaultService {
           unlockVaultOnLoad: false,
         })
       : new BrowserVault();
+
+    this.vault.onLock(() => this.handleVaultLocked());
   }
 
   async setSession(session: Session): Promise<void> {
@@ -59,6 +61,10 @@ export class VaultService {
       type: type.type,
       deviceSecurityType: type.deviceSecurityType,
     });
+  }
+
+  private handleVaultLocked() {
+    alert('You are now locked out of the vault!!');
   }
 
   private validMobileVaultTypes(): Array<VaultType> {

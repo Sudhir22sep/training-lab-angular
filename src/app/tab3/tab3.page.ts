@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { VaultService, VaultType } from '../core';
 
 @Component({
@@ -6,15 +6,13 @@ import { VaultService, VaultType } from '../core';
   templateUrl: 'tab3.page.html',
   styleUrls: ['tab3.page.scss'],
 })
-export class Tab3Page {
+export class Tab3Page implements OnInit {
   vaultTypes: Array<VaultType> = [];
+
   constructor(private vault: VaultService) {}
 
   ngOnInit() {
     this.vaultTypes = this.vault.validVaultTypes();
-    if (this.vaultTypes.length) {
-      this.vaultTypeChanged({ detail: { value: 0 } });
-    }
   }
 
   lock() {
