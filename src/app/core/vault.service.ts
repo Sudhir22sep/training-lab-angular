@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Vault } from '@ionic-enterprise/identity-vault';
-import { Platform } from '@ionic/angular';
+import { ModalController, Platform } from '@ionic/angular';
 import { Session } from '../models';
+import { PinDialogComponent } from '../pin-dialog/pin-dialog.component';
 import { BrowserVault } from './browser-vault';
 
 export interface VaultType {
@@ -17,7 +18,10 @@ export class VaultService {
   private key = 'session';
   private vault: Vault | BrowserVault;
 
-  constructor(private platform: Platform) {
+  constructor(
+    private modalController: ModalController,
+    private platform: Platform,
+  ) {
     this.vault = this.platform.is('hybrid')
       ? new Vault({
           key: 'io.ionic.traininglabng',
@@ -30,7 +34,7 @@ export class VaultService {
         })
       : new BrowserVault();
 
-    this.vault.onLock(() => this.handleVaultLocked());
+    this.initializeEventHandlers();
   }
 
   async setSession(session: Session): Promise<void> {
@@ -55,20 +59,47 @@ export class VaultService {
       : this.validWebVaultTypes();
   }
 
-  setVaultType(type: VaultType): Promise<void> {
-    return this.vault.updateConfig({
+  async setVaultType(type: VaultType): Promise<void> {
+    await this.vault.updateConfig({
       ...this.vault.config,
       type: type.type,
       deviceSecurityType: type.deviceSecurityType,
     });
+    this.initializeEventHandlers();
   }
 
-  private handleVaultLocked() {
-    alert('You are now locked out of the vault!!');
+  private async getPasscode(isPasscodeSetRequest: boolean): Promise<string> {
+    const dlg = await this.modalController.create({
+      backdropDismiss: false,
+      component: PinDialogComponent,
+      componentProps: {
+        setPasscodeMode: isPasscodeSetRequest,
+      },
+    });
+    dlg.present();
+    const { data } = await dlg.onDidDismiss();
+    return data || '';
+  }
+
+  private initializeEventHandlers() {
+    this.vault.onError(err => {
+      alert(`ERROR from callback ${JSON.stringify(err)}`);
+    });
+    this.vault.onPasscodeRequested(async () => {
+      alert('getting the passcode');
+      const p = await this.getPasscode(false);
+      return this.vault.setCustomPasscode(p);
+    });
+    this.vault.onLock(() => alert('You are now locked out of the vault!!'));
   }
 
   private validMobileVaultTypes(): Array<VaultType> {
     return [
+      {
+        label: 'Custom PIN Unlock',
+        type: 'CustomPasscode',
+        deviceSecurityType: 'Both',
+      },
       {
         label: 'System PIN Unlock',
         type: 'DeviceSecurity',
