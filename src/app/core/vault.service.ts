@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Vault } from '@ionic-enterprise/identity-vault';
+import { Device, Vault } from '@ionic-enterprise/identity-vault';
 import { ModalController, Platform } from '@ionic/angular';
 import { Session } from '../models';
 import { PinDialogComponent } from '../pin-dialog/pin-dialog.component';
@@ -53,7 +53,7 @@ export class VaultService {
     return this.vault.lock();
   }
 
-  validVaultTypes(): Array<VaultType> {
+  validVaultTypes(): Promise<Array<VaultType>> {
     return this.platform.is('hybrid')
       ? this.validMobileVaultTypes()
       : this.validWebVaultTypes();
@@ -93,8 +93,8 @@ export class VaultService {
     this.vault.onLock(() => alert('You are now locked out of the vault!!'));
   }
 
-  private validMobileVaultTypes(): Array<VaultType> {
-    return [
+  private async validMobileVaultTypes(): Promise<Array<VaultType>> {
+    const types: Array<VaultType> = [
       {
         label: 'Custom PIN Unlock',
         type: 'CustomPasscode',
@@ -105,25 +105,29 @@ export class VaultService {
         type: 'DeviceSecurity',
         deviceSecurityType: 'SystemPasscode',
       },
-      {
+    ];
+    // if (await Device.isBiometricsEnabled()) {
+    if (await Promise.resolve(true)) {
+      types.push({
         label: 'Biometric Unlock',
         type: 'DeviceSecurity',
         deviceSecurityType: 'Biometrics',
-      },
-      {
+      });
+      types.push({
         label: 'Biometric Unlock (System PIN Fallback)',
         type: 'DeviceSecurity',
         deviceSecurityType: 'Both',
-      },
-      {
-        label: 'Never Lock Session',
-        type: 'SecureStorage',
-        deviceSecurityType: 'Both',
-      },
-    ];
+      });
+    }
+    types.push({
+      label: 'Never Lock Session',
+      type: 'SecureStorage',
+      deviceSecurityType: 'Both',
+    });
+    return types;
   }
 
-  private validWebVaultTypes(): Array<VaultType> {
+  private async validWebVaultTypes(): Promise<Array<VaultType>> {
     return [];
   }
 }

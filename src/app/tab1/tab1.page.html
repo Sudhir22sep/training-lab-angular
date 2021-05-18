@@ -10,5 +10,11 @@
     <div>User: {{ currentUser?.email }}</div>
   </div>
 
+  <div>Biometrics is Enabled: {{biometricsEnabled}}</div>
+  <div>Biometrics is Supported: {{biometricsSupported}}</div>
+  <div>Locked Out of Biometrics: {{lockedOut}}</div>
+  <div>System Passcode Set: {{systemPasscodeSet}}</div>
+  <div>Privacy Screen Enabled: {{privacyScreenEnabled}}</div>
+
   <ion-button [disabled]="!currentUser" (click)="logout()">Logout</ion-button>
 </ion-content>

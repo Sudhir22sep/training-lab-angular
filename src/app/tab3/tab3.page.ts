@@ -11,8 +11,8 @@ export class Tab3Page implements OnInit {
 
   constructor(private vault: VaultService) {}
 
-  ngOnInit() {
-    this.vaultTypes = this.vault.validVaultTypes();
+  async ngOnInit() {
+    this.vaultTypes = await this.vault.validVaultTypes();
   }
 
   lock() {
