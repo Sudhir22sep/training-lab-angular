@@ -28,7 +28,7 @@
     "@capacitor/haptics": "~1.0.0",
     "@capacitor/ios": "~3.0.0",
     "@capacitor/keyboard": "~1.0.0",
-    "@ionic-enterprise/identity-vault": "~4.2.8-dev-89f150b.0",
+    "@ionic-enterprise/identity-vault": "4.2.8-dev-89f150b.0",
     "@ionic/angular": "~5.6.4",
     "rxjs": "~6.6.7",
     "tslib": "~2.2.0",
