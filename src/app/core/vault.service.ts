@@ -59,13 +59,12 @@ export class VaultService {
       : this.validWebVaultTypes();
   }
 
-  async setVaultType(type: VaultType): Promise<void> {
-    await this.vault.updateConfig({
+  setVaultType(type: VaultType): Promise<void> {
+    return this.vault.updateConfig({
       ...this.vault.config,
       type: type.type,
       deviceSecurityType: type.deviceSecurityType,
     });
-    this.initializeEventHandlers();
   }
 
   private async getPasscode(isPasscodeSetRequest: boolean): Promise<string> {
@@ -82,12 +81,8 @@ export class VaultService {
   }
 
   private initializeEventHandlers() {
-    this.vault.onError(err => {
-      alert(`ERROR from callback ${JSON.stringify(err)}`);
-    });
-    this.vault.onPasscodeRequested(async () => {
-      alert('getting the passcode');
-      const p = await this.getPasscode(false);
+    this.vault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
+      const p = await this.getPasscode(isPasscodeSetRequest);
       return this.vault.setCustomPasscode(p);
     });
     this.vault.onLock(() => alert('You are now locked out of the vault!!'));

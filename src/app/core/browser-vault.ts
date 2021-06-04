@@ -63,7 +63,9 @@ export class BrowserVault {
 
   onLock(callback: () => void) {}
 
-  onPasscodeRequested(callback: () => Promise<void>) {}
+  onPasscodeRequested(
+    callback: (isPasscodeSetRequest: boolean) => Promise<void>,
+  ) {}
 
   onUnlock(callback: () => void) {}
 

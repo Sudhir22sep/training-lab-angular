@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Device } from '@ionic-enterprise/identity-vault';
 import { VaultService, VaultType } from '../core';
 
 @Component({
@@ -8,15 +9,22 @@ import { VaultService, VaultType } from '../core';
 })
 export class Tab3Page implements OnInit {
   vaultTypes: Array<VaultType> = [];
+  privacyScreen: boolean;
 
   constructor(private vault: VaultService) {}
 
   async ngOnInit() {
     this.vaultTypes = await this.vault.validVaultTypes();
+    this.privacyScreen = await Device.isHideScreenOnBackgroundEnabled();
   }
 
   lock() {
     this.vault.lockSession();
+  }
+
+  async toggle() {
+    await Device.setHideScreenOnBackground(!this.privacyScreen);
+    this.privacyScreen = await Device.isHideScreenOnBackgroundEnabled();
   }
 
   vaultTypeChanged(evt: { detail: { value: number } }) {
