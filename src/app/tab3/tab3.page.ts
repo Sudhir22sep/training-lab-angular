@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Device } from '@ionic-enterprise/identity-vault';
+import { Observable } from 'rxjs';
 import { VaultService, VaultType } from '../core';
 
 @Component({
@@ -10,6 +11,8 @@ import { VaultService, VaultType } from '../core';
 export class Tab3Page implements OnInit {
   vaultTypes: Array<VaultType> = [];
   privacyScreen: boolean;
+
+  lockStatus$: Observable<string> = this.vault.lockStatus;
 
   constructor(private vault: VaultService) {}
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Device, Vault } from '@ionic-enterprise/identity-vault';
 import { ModalController, Platform } from '@ionic/angular';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Session } from '../models';
 import { PinDialogComponent } from '../pin-dialog/pin-dialog.component';
 import { BrowserVault } from './browser-vault';
@@ -17,6 +18,11 @@ export interface VaultType {
 export class VaultService {
   private key = 'session';
   private vault: Vault | BrowserVault;
+
+  private lockStatusSubject = new BehaviorSubject('Unknown');
+  get lockStatus(): Observable<string> {
+    return this._lockStatus.asObservable();
+  }
 
   constructor(
     private modalController: ModalController,
@@ -85,7 +91,10 @@ export class VaultService {
       const p = await this.getPasscode(isPasscodeSetRequest);
       return this.vault.setCustomPasscode(p);
     });
-    this.vault.onLock(() => alert('You are now locked out of the vault!!'));
+
+    this.vault.onUnlock(() => this.lockStatusSubject.next('Unlocked'));
+
+    this.vault.onLock(() => this.lockStatusSubject.next('Locked'));
   }
 
   private async validMobileVaultTypes(): Promise<Array<VaultType>> {

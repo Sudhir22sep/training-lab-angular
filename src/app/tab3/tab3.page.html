@@ -23,6 +23,10 @@
       <ion-label>{{ vaultType.label }}</ion-label>
       <ion-radio [value]="idx"></ion-radio>
     </ion-item>
+
+    <ion-item>
+      <ion-label>Status: {{ lockStatus$ | async }}</ion-label>
+    </ion-item>
   </ion-radio-group>
 
   <ion-button expand="block" (click)="lock()">Lock</ion-button>

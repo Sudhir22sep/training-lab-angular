@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Device } from '@ionic-enterprise/identity-vault';
 import { NavController } from '@ionic/angular';
+import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuthenticationService } from '../core/authentication.service';
 import { VaultService } from '../core/vault.service';
@@ -20,6 +21,8 @@ export class Tab1Page {
   privacyScreenEnabled: boolean;
   systemPasscodeSet: boolean;
 
+  lockStatus$: Observable<string> = this.vault.lockStatus;
+
   constructor(
     private authentication: AuthenticationService,
     private navController: NavController,
@@ -27,24 +30,13 @@ export class Tab1Page {
   ) {}
 
   async ionViewWillEnter() {
-    console.log('ionViewWillEnter starting');
     const session = await this.vault.getSession();
     this.currentUser = session?.user;
-    console.log('ionViewWillEnter got the session');
-    //    this.biometricsEnabled = await Device.isBiometricsEnabled();
-    //    this.biometricsSupported = await Device.isBiometricsSupported();
-    //    this.lockedOut = await Device.isLockedOutOfBiometrics();
-    //    this.privacyScreenEnabled = await Device.isHideScreenOnBackgroundEnabled();
-    //    this.systemPasscodeSet = await Device.isSystemPasscodeSet();
-    Device.isBiometricsEnabled().then(x => (this.biometricsEnabled = x));
-    Device.isBiometricsSupported().then(x => (this.biometricsSupported = x));
-    Device.isLockedOutOfBiometrics().then(x => (this.lockedOut = x));
-    Device.isHideScreenOnBackgroundEnabled().then(
-      x => (this.privacyScreenEnabled = x),
-    );
-    Device.isSystemPasscodeSet().then(x => (this.systemPasscodeSet = x));
-
-    console.log('ionViewWillEnter done');
+    this.biometricsEnabled = await Device.isBiometricsEnabled();
+    this.biometricsSupported = await Device.isBiometricsSupported();
+    this.lockedOut = await Device.isLockedOutOfBiometrics();
+    this.privacyScreenEnabled = await Device.isHideScreenOnBackgroundEnabled();
+    this.systemPasscodeSet = await Device.isSystemPasscodeSet();
   }
 
   logout() {
