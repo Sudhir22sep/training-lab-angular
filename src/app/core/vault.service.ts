@@ -36,9 +36,7 @@ export class VaultService {
     private modalController: ModalController,
     private platform: Platform,
   ) {
-    this.vaultReady = this.initializeVault().then(() =>
-      this.initializeEventHandlers(),
-    );
+    this.vaultReady = this.initializeVault();
   }
 
   async setSession(session: Session): Promise<void> {
@@ -106,6 +104,12 @@ export class VaultService {
             unlockVaultOnLoad: false,
           })
         : new BrowserVault();
+      this.vault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
+        const p = await this.getPasscode(isPasscodeSetRequest);
+        return this.vault.setCustomPasscode(p);
+      });
+      this.vault.onUnlock(() => this.lockStatusSubject.next('Unlocked'));
+      this.vault.onLock(() => this.lockStatusSubject.next('Locked'));
       resolve();
     });
   }
@@ -146,15 +150,6 @@ export class VaultService {
 
   private setDeviceSecurityType(value: DeviceSecurityType): Promise<void> {
     return Storage.set({ key: this.vaultDeviceSecurityTypeKey, value });
-  }
-
-  private async initializeEventHandlers(): Promise<void> {
-    this.vault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
-      const p = await this.getPasscode(isPasscodeSetRequest);
-      return this.vault.setCustomPasscode(p);
-    });
-    this.vault.onUnlock(() => this.lockStatusSubject.next('Unlocked'));
-    this.vault.onLock(() => this.lockStatusSubject.next('Locked'));
   }
 
   private async validMobileSecurityTypes(): Promise<Array<SecurityType>> {
