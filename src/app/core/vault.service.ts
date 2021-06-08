@@ -25,7 +25,7 @@ export class VaultService {
   private vaultDeviceSecurityTypeKey = 'vaultDeviceSecurityType';
 
   private vault: Vault | BrowserVault;
-  private vaultReady: Promise<boolean>;
+  private vaultReady: Promise<void>;
 
   private lockStatusSubject = new BehaviorSubject('Unknown');
   get lockStatus(): Observable<string> {
@@ -36,8 +36,9 @@ export class VaultService {
     private modalController: ModalController,
     private platform: Platform,
   ) {
-    this.vaultReady = this.initializeVault();
-    this.initializeEventHandlers();
+    this.vaultReady = this.initializeVault().then(() =>
+      this.initializeEventHandlers(),
+    );
   }
 
   async setSession(session: Session): Promise<void> {
@@ -90,8 +91,8 @@ export class VaultService {
     return data || '';
   }
 
-  private async initializeVault(): Promise<boolean> {
-    return new Promise<boolean>(async resolve => {
+  private async initializeVault(): Promise<void> {
+    return new Promise<void>(async resolve => {
       const type = await this.getVaultType();
       const deviceSecurityType = await this.getDeviceSecurityType();
       this.vault = this.platform.is('hybrid')
@@ -105,7 +106,7 @@ export class VaultService {
             unlockVaultOnLoad: false,
           })
         : new BrowserVault();
-      resolve(true);
+      resolve();
     });
   }
 
@@ -148,14 +149,11 @@ export class VaultService {
   }
 
   private async initializeEventHandlers(): Promise<void> {
-    await this.vaultReady;
     this.vault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
       const p = await this.getPasscode(isPasscodeSetRequest);
       return this.vault.setCustomPasscode(p);
     });
-
     this.vault.onUnlock(() => this.lockStatusSubject.next('Unlocked'));
-
     this.vault.onLock(() => this.lockStatusSubject.next('Locked'));
   }
 
