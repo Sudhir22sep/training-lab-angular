@@ -5,11 +5,15 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { Session } from '../models';
 import { PinDialogComponent } from '../pin-dialog/pin-dialog.component';
 import { BrowserVault } from './browser-vault';
+import { Storage } from '@capacitor/storage';
 
-export interface VaultType {
+export type VaultType = 'SecureStorage' | 'DeviceSecurity' | 'CustomPasscode';
+export type DeviceSecurityType = 'SystemPasscode' | 'Biometrics' | 'Both';
+
+export interface SecurityType {
   label: string;
-  type: 'SecureStorage' | 'DeviceSecurity' | 'CustomPasscode';
-  deviceSecurityType: 'SystemPasscode' | 'Biometrics' | 'Both';
+  vaultType: VaultType;
+  deviceSecurityType: DeviceSecurityType;
 }
 
 @Injectable({
@@ -17,59 +21,59 @@ export interface VaultType {
 })
 export class VaultService {
   private key = 'session';
+  private vaultTypeKey = 'vaultType';
+  private vaultDeviceSecurityTypeKey = 'vaultDeviceSecurityType';
+
   private vault: Vault | BrowserVault;
+  private vaultReady: Promise<boolean>;
 
   private lockStatusSubject = new BehaviorSubject('Unknown');
   get lockStatus(): Observable<string> {
-    return this._lockStatus.asObservable();
+    return this.lockStatusSubject.asObservable();
   }
 
   constructor(
     private modalController: ModalController,
     private platform: Platform,
   ) {
-    this.vault = this.platform.is('hybrid')
-      ? new Vault({
-          key: 'io.ionic.traininglabng',
-          type: 'SecureStorage',
-          deviceSecurityType: 'Both',
-          lockAfterBackgrounded: 2000,
-          shouldClearVaultAfterTooManyFailedAttempts: true,
-          customPasscodeInvalidUnlockAttempts: 2,
-          unlockVaultOnLoad: false,
-        })
-      : new BrowserVault();
-
+    this.vaultReady = this.initializeVault();
     this.initializeEventHandlers();
   }
 
   async setSession(session: Session): Promise<void> {
+    await this.vaultReady;
     return this.vault.setValue(this.key, session);
   }
 
   async getSession(): Promise<Session> {
+    await this.vaultReady;
     return this.vault.getValue(this.key);
   }
 
   async clearSession(): Promise<void> {
+    await this.vaultReady;
     return this.vault.clear();
   }
 
   async lockSession(): Promise<void> {
+    await this.vaultReady;
     return this.vault.lock();
   }
 
-  validVaultTypes(): Promise<Array<VaultType>> {
+  validSecurityTypes(): Promise<Array<SecurityType>> {
     return this.platform.is('hybrid')
-      ? this.validMobileVaultTypes()
-      : this.validWebVaultTypes();
+      ? this.validMobileSecurityTypes()
+      : this.validWebSecurityTypes();
   }
 
-  setVaultType(type: VaultType): Promise<void> {
+  async setSecurityType(securityType: SecurityType): Promise<void> {
+    await this.vaultReady;
+    this.setVaultType(securityType.vaultType);
+    this.setDeviceSecurityType(securityType.deviceSecurityType);
     return this.vault.updateConfig({
       ...this.vault.config,
-      type: type.type,
-      deviceSecurityType: type.deviceSecurityType,
+      type: securityType.vaultType,
+      deviceSecurityType: securityType.deviceSecurityType,
     });
   }
 
@@ -86,7 +90,65 @@ export class VaultService {
     return data || '';
   }
 
-  private initializeEventHandlers() {
+  private async initializeVault(): Promise<boolean> {
+    return new Promise<boolean>(async resolve => {
+      const type = await this.getVaultType();
+      const deviceSecurityType = await this.getDeviceSecurityType();
+      this.vault = this.platform.is('hybrid')
+        ? new Vault({
+            key: 'io.ionic.traininglabng',
+            type,
+            deviceSecurityType,
+            lockAfterBackgrounded: 2000,
+            shouldClearVaultAfterTooManyFailedAttempts: true,
+            customPasscodeInvalidUnlockAttempts: 2,
+            unlockVaultOnLoad: false,
+          })
+        : new BrowserVault();
+      resolve(true);
+    });
+  }
+
+  private async getVaultType(): Promise<VaultType> {
+    const stored = await Storage.get({ key: this.vaultTypeKey });
+    switch (stored?.value) {
+      case 'SecureStorage':
+        return 'SecureStorage';
+      case 'DeviceSecurity':
+        return 'DeviceSecurity';
+      case 'CustomPasscode':
+        return 'CustomPasscode';
+
+      default:
+        return 'SecureStorage';
+    }
+  }
+
+  private setVaultType(value: VaultType): Promise<void> {
+    return Storage.set({ key: this.vaultTypeKey, value });
+  }
+
+  private async getDeviceSecurityType(): Promise<DeviceSecurityType> {
+    const stored = await Storage.get({ key: this.vaultDeviceSecurityTypeKey });
+    switch (stored?.value) {
+      case 'SystemPasscode':
+        return 'SystemPasscode';
+      case 'Biometrics':
+        return 'Biometrics';
+      case 'Both':
+        return 'Both';
+
+      default:
+        return 'Both';
+    }
+  }
+
+  private setDeviceSecurityType(value: DeviceSecurityType): Promise<void> {
+    return Storage.set({ key: this.vaultDeviceSecurityTypeKey, value });
+  }
+
+  private async initializeEventHandlers(): Promise<void> {
+    await this.vaultReady;
     this.vault.onPasscodeRequested(async (isPasscodeSetRequest: boolean) => {
       const p = await this.getPasscode(isPasscodeSetRequest);
       return this.vault.setCustomPasscode(p);
@@ -97,41 +159,40 @@ export class VaultService {
     this.vault.onLock(() => this.lockStatusSubject.next('Locked'));
   }
 
-  private async validMobileVaultTypes(): Promise<Array<VaultType>> {
-    const types: Array<VaultType> = [
+  private async validMobileSecurityTypes(): Promise<Array<SecurityType>> {
+    const types: Array<SecurityType> = [
       {
         label: 'Custom PIN Unlock',
-        type: 'CustomPasscode',
+        vaultType: 'CustomPasscode',
         deviceSecurityType: 'Both',
       },
       {
         label: 'System PIN Unlock',
-        type: 'DeviceSecurity',
+        vaultType: 'DeviceSecurity',
         deviceSecurityType: 'SystemPasscode',
       },
     ];
-    // if (await Device.isBiometricsEnabled()) {
-    if (await Promise.resolve(true)) {
+    if (await Device.isBiometricsEnabled()) {
       types.push({
         label: 'Biometric Unlock',
-        type: 'DeviceSecurity',
+        vaultType: 'DeviceSecurity',
         deviceSecurityType: 'Biometrics',
       });
       types.push({
         label: 'Biometric Unlock (System PIN Fallback)',
-        type: 'DeviceSecurity',
+        vaultType: 'DeviceSecurity',
         deviceSecurityType: 'Both',
       });
     }
     types.push({
       label: 'Never Lock Session',
-      type: 'SecureStorage',
+      vaultType: 'SecureStorage',
       deviceSecurityType: 'Both',
     });
     return types;
   }
 
-  private async validWebVaultTypes(): Promise<Array<VaultType>> {
+  private async validWebSecurityTypes(): Promise<Array<SecurityType>> {
     return [];
   }
 }

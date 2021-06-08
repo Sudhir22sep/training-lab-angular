@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Device } from '@ionic-enterprise/identity-vault';
 import { Observable } from 'rxjs';
-import { VaultService, VaultType } from '../core';
+import { VaultService, SecurityType } from '../core';
 
 @Component({
   selector: 'app-tab3',
@@ -9,7 +9,7 @@ import { VaultService, VaultType } from '../core';
   styleUrls: ['tab3.page.scss'],
 })
 export class Tab3Page implements OnInit {
-  vaultTypes: Array<VaultType> = [];
+  securityTypes: Array<SecurityType> = [];
   privacyScreen: boolean;
 
   lockStatus$: Observable<string> = this.vault.lockStatus;
@@ -17,7 +17,7 @@ export class Tab3Page implements OnInit {
   constructor(private vault: VaultService) {}
 
   async ngOnInit() {
-    this.vaultTypes = await this.vault.validVaultTypes();
+    this.securityTypes = await this.vault.validSecurityTypes();
     this.privacyScreen = await Device.isHideScreenOnBackgroundEnabled();
   }
 
@@ -30,8 +30,8 @@ export class Tab3Page implements OnInit {
     this.privacyScreen = await Device.isHideScreenOnBackgroundEnabled();
   }
 
-  vaultTypeChanged(evt: { detail: { value: number } }) {
-    const mode = this.vaultTypes[evt.detail.value];
-    this.vault.setVaultType(mode);
+  securityTypeChanged(evt: { detail: { value: number } }) {
+    const mode = this.securityTypes[evt.detail.value];
+    this.vault.setSecurityType(mode);
   }
 }

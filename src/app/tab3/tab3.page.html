@@ -12,15 +12,15 @@
   </ion-header>
 
   <ion-radio-group
-    *ngIf="vaultTypes.length"
-    (ionChange)="vaultTypeChanged($event)"
+    *ngIf="securityTypes.length"
+    (ionChange)="securityTypeChanged($event)"
   >
     <ion-list-header>
       <ion-label> Session Locking </ion-label>
     </ion-list-header>
 
-    <ion-item *ngFor="let vaultType of vaultTypes; index as idx">
-      <ion-label>{{ vaultType.label }}</ion-label>
+    <ion-item *ngFor="let securityType of securityTypes; index as idx">
+      <ion-label>{{ securityType.label }}</ion-label>
       <ion-radio [value]="idx"></ion-radio>
     </ion-item>
 
